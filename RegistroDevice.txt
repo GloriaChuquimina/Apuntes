@@ -1,0 +1,143 @@
+Compartir Proyecto
+dotnet run --urls="http://0.0.0.0:5127"
+
+window.clientInfo = {
+
+    getInfo: () => {
+
+        const ua = navigator.userAgent;
+
+        console.log("User Agent:", ua);
+
+        let browser = "Desconocido";
+
+        if (ua.includes("Edg"))
+            browser = "Microsoft Edge";
+        else if (ua.includes("OPR"))
+            browser = "Opera";
+        else if (ua.includes("Chrome"))
+            browser = "Google Chrome";
+        else if (ua.includes("Firefox"))
+            browser = "Mozilla Firefox";
+        else if (ua.includes("Safari"))
+            browser = "Safari";
+
+        let device = "Desktop";
+
+        if (/tablet|ipad/i.test(ua))
+            device = "Tablet";
+        else if (/mobi|android|iphone/i.test(ua))
+            device = "Móvil";
+
+        let os = "Desconocido";
+
+        if (/Windows/i.test(ua))
+            os = "Windows";
+        else if (/Android/i.test(ua))
+            os = "Android";
+        else if (/iPhone|iPad/i.test(ua))
+            os = "iOS";
+        else if (/Mac/i.test(ua))
+            os = "macOS";
+        else if (/Linux/i.test(ua))
+            os = "Linux";
+
+        return {
+            browser: browser,
+            operatingSystem: os,
+            deviceType: device,
+            language: navigator.language,
+            timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+            online: navigator.onLine,
+            userAgent: navigator.userAgent
+        };
+    }
+
+};
+
+
+window.clientInfo.showAlert = () => {
+
+    const info = window.clientInfo.getInfo();
+
+    alert(
+`Browser: ${info.browser}
+OS: ${info.operatingSystem}
+Device: ${info.deviceType}
+Language: ${info.language}
+Timezone: ${info.timeZone}`
+    );
+
+};
+============================================================
+Program.cs
+using MiProyectoBlazor.Services;
+
+builder.Services.AddScoped<ClientInfoService>();
+
+---------------------------
+
+ClientInfoService.cs
+
+using Microsoft.AspNetCore.Http;
+
+namespace MiProyectoBlazor.Services;
+
+public class ClientInfoService
+{
+    private readonly IHttpContextAccessor _httpContextAccessor;
+
+    public ClientInfoService(IHttpContextAccessor httpContextAccessor)
+    {
+        _httpContextAccessor = httpContextAccessor;
+    }
+
+    public string GetIpAddress()
+    {
+        var context = _httpContextAccessor.HttpContext;
+
+        if (context == null)
+            return "No disponible";
+
+        return context.Connection.RemoteIpAddress?.ToString() ?? "No disponible";
+    }
+}
+
+------------------
+
+Home.razor
+
+@using MiProyectoBlazor.Services
+
+@rendermode InteractiveServer
+@inject IJSRuntime JS
+
+@inject ClientInfoService ClientInfoService
+
+............ HTML.............
+
+
+@code {
+
+    private ClientInfo? info;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender)
+            return;
+
+        try
+        {
+            info = await JS.InvokeAsync<ClientInfo>("clientInfo.getInfo");
+            info.IpAddress = ClientInfoService.GetIpAddress();
+
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex);
+        }
+    }
+}
+
+
