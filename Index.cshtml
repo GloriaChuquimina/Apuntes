@@ -1,0 +1,516 @@
+@{
+    ViewData["Title"] = "ACH - ODD";
+    Layout = null; // Usa Layout = "_Layout" si ya tienes uno compartido
+}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"]</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet" />
+    <link href="~/css/site-ach.css" rel="stylesheet" />
+</head>
+<body>
+    <!-- ========== HEADER ========== -->
+    <header class="app-header">
+        <div class="d-flex align-items-center gap-3">
+            <button type="button" class="btn-icon-header d-lg-none" id="btnMenu" aria-label="Menú">
+                <i class="bi bi-list fs-4"></i>
+            </button>
+            <button type="button" class="brand" data-nav="Resumen">
+                <span class="accent">›</span>BCP<span class="accent">›</span>
+                <span>ACH - ODD</span>
+            </button>
+        </div>
+        <div class="header-actions">
+            <button type="button" class="btn-icon-header" id="btnNotif" aria-label="Notificaciones">
+                <i class="bi bi-bell"></i>
+                <span class="notif-dot"></span>
+            </button>
+            <div class="header-divider"></div>
+            <button type="button" class="user-chip" id="btnUser">
+                <span class="user-avatar">BC</span>
+                <span class="d-none d-md-inline" id="headerRoleLabel">BC3467 · Validador</span>
+                <i class="bi bi-chevron-down"></i>
+            </button>
+            <!-- Dropdown notificaciones -->
+            <div id="panelNotif" class="dropdown-panel d-none" style="width:20rem">
+                <p class="fw-bold mb-2">Notificaciones</p>
+                <p class="small text-muted mb-2">8 cargas esperan aprobación y 32 registros tienen observaciones.</p>
+                <button type="button" class="btn btn-link p-0 text-primary fw-semibold small" id="btnVerAprobaciones">Ver aprobaciones</button>
+            </div>
+            <!-- Dropdown perfil -->
+            <div id="panelRole" class="dropdown-panel d-none" style="width:18rem">
+                <p class="fw-bold mb-1">Perfil actual</p>
+                <p class="small text-muted mb-2">Revisa registros observados antes de aprobar.</p>
+                <button type="button" class="btn btn-link p-0 text-primary fw-semibold small" id="btnAdminPerfiles">Administrar perfiles</button>
+            </div>
+        </div>
+    </header>
+
+    <div class="app-body">
+        <!-- ========== SIDEBAR ========== -->
+        <aside class="sidebar" id="sidebar">
+            <div class="menu-label">Menú principal</div>
+            <nav class="d-flex flex-column gap-1">
+                <button type="button" class="nav-link-item active" data-nav="Resumen">
+                    <span class="nav-left"><i class="bi bi-grid-1x2"></i> Resumen</span>
+                </button>
+                <button type="button" class="nav-link-item" data-nav="Afiliaciones">
+                    <span class="nav-left"><i class="bi bi-people"></i> Afiliaciones</span>
+                </button>
+                <button type="button" class="nav-link-item" data-nav="Cargas y débitos">
+                    <span class="nav-left"><i class="bi bi-cloud-upload"></i> Cargas y débitos</span>
+                </button>
+                <button type="button" class="nav-link-item" data-nav="Aprobaciones">
+                    <span class="nav-left"><i class="bi bi-shield-check"></i> Aprobaciones</span>
+                    <span class="nav-badge">8</span>
+                </button>
+                <button type="button" class="nav-link-item" data-nav="Consultas y reportes">
+                    <span class="nav-left"><i class="bi bi-file-earmark-text"></i> Consultas y reportes</span>
+                </button>
+            </nav>
+            <div class="sidebar-section">
+                <p class="sidebar-section-title">Operación</p>
+                <button type="button" class="nav-link-item" data-nav="Control de accesos">
+                    <span class="nav-left"><i class="bi bi-gear"></i> Control de accesos</span>
+                </button>
+            </div>
+            <div class="perfil-box mt-auto">
+                <strong>Perfil actual</strong>
+                <span id="sidebarRoleLabel">Validador · Operaciones</span>
+                <button type="button" id="btnCambiarPerfil">Cambiar perfil</button>
+            </div>
+        </aside>
+
+        <!-- ========== MAIN ========== -->
+        <main class="main-area">
+            <div class="content-wrap">
+
+                <!-- ===== RESUMEN ===== -->
+                <div id="sec-resumen" class="section-panel active">
+                    <div class="page-header">
+                        <div>
+                            <p class="breadcrumb-mini">Inicio / Resumen operativo</p>
+                            <h1 class="page-title">Resumen operativo</h1>
+                            <p class="page-subtitle">Controla afiliaciones y débitos automáticos desde un solo lugar.</p>
+                        </div>
+                        <button type="button" class="btn-primary-ach" data-action="upload">
+                            <i class="bi bi-cloud-upload"></i> Nueva carga
+                        </button>
+                    </div>
+
+                    <div class="row g-3 mb-4">
+                        <div class="col-sm-6 col-xl-3">
+                            <div class="kpi-card">
+                                <div class="d-flex justify-content-between">
+                                    <div>
+                                        <p class="kpi-label">Afiliaciones activas</p>
+                                        <p class="kpi-value">24,682</p>
+                                        <p class="kpi-detail up">+8.4%</p>
+                                    </div>
+                                    <div class="kpi-icon blue"><i class="bi bi-people"></i></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-sm-6 col-xl-3">
+                            <div class="kpi-card">
+                                <div class="d-flex justify-content-between">
+                                    <div>
+                                        <p class="kpi-label">Pendientes de aprobación</p>
+                                        <p class="kpi-value">8</p>
+                                        <p class="kpi-detail warn">Requieren atención</p>
+                                    </div>
+                                    <div class="kpi-icon orange"><i class="bi bi-clock"></i></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-sm-6 col-xl-3">
+                            <div class="kpi-card">
+                                <div class="d-flex justify-content-between">
+                                    <div>
+                                        <p class="kpi-label">Cargas procesadas</p>
+                                        <p class="kpi-value">1,284</p>
+                                        <p class="kpi-detail up">+12.1%</p>
+                                    </div>
+                                    <div class="kpi-icon green"><i class="bi bi-file-earmark-check"></i></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-sm-6 col-xl-3">
+                            <div class="kpi-card">
+                                <div class="d-flex justify-content-between">
+                                    <div>
+                                        <p class="kpi-label">Monto debitado este mes</p>
+                                        <p class="kpi-value">Bs 1.84M</p>
+                                        <p class="kpi-detail up">+6.8%</p>
+                                    </div>
+                                    <div class="kpi-icon purple"><i class="bi bi-arrow-up-right"></i></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row g-4 mb-4">
+                        <div class="col-xl-7">
+                            <div class="panel-card p-4">
+                                <div class="d-flex justify-content-between align-items-start mb-3">
+                                    <div>
+                                        <h2 class="panel-title">Actividad de cargas</h2>
+                                        <p class="panel-desc">Volumen procesado durante los últimos 7 días</p>
+                                    </div>
+                                    <i class="bi bi-three-dots text-muted"></i>
+                                </div>
+                                <div class="bar-chart">
+                                    <div class="bar-col"><div class="bar" style="height:42%"></div><span class="bar-label">Lun</span></div>
+                                    <div class="bar-col"><div class="bar" style="height:65%"></div><span class="bar-label">Mar</span></div>
+                                    <div class="bar-col"><div class="bar" style="height:51%"></div><span class="bar-label">Mié</span></div>
+                                    <div class="bar-col"><div class="bar" style="height:82%"></div><span class="bar-label">Jue</span></div>
+                                    <div class="bar-col"><div class="bar" style="height:72%"></div><span class="bar-label">Vie</span></div>
+                                    <div class="bar-col"><div class="bar highlight" style="height:96%"></div><span class="bar-label">Sáb</span></div>
+                                    <div class="bar-col"><div class="bar" style="height:75%"></div><span class="bar-label">Dom</span></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-xl-5">
+                            <div class="panel-card p-4 h-100">
+                                <h2 class="panel-title">Tareas pendientes</h2>
+                                <p class="panel-desc mb-3">Acciones que requieren tu atención</p>
+                                <div class="d-flex flex-column gap-2">
+                                    <button type="button" class="task-btn" id="taskAprobaciones">
+                                        <span class="task-num warn">8</span>
+                                        <span class="flex-grow-1">
+                                            <span class="d-block small fw-semibold" style="color:var(--navy-mid)">Cargas pendientes de aprobación</span>
+                                            <span class="d-block text-muted" style="font-size:0.7rem">Prioridad alta</span>
+                                        </span>
+                                        <i class="bi bi-chevron-right text-muted"></i>
+                                    </button>
+                                    <button type="button" class="task-btn" id="taskObservados">
+                                        <span class="task-num danger">32</span>
+                                        <span class="flex-grow-1">
+                                            <span class="d-block small fw-semibold" style="color:var(--navy-mid)">Registros observados</span>
+                                            <span class="d-block text-muted" style="font-size:0.7rem">Revisar antes de las 18:00</span>
+                                        </span>
+                                        <i class="bi bi-chevron-right text-muted"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tabla últimas cargas -->
+                    <div class="panel-card">
+                        <div class="p-4 border-bottom d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+                            <div>
+                                <h2 class="panel-title">Últimas cargas</h2>
+                                <p class="panel-desc mb-0">Seguimiento de lotes y estado de procesamiento</p>
+                            </div>
+                            <div class="search-wrap" style="min-width:240px">
+                                <i class="bi bi-search"></i>
+                                <input type="text" class="search-input search-batches" placeholder="Buscar lote o empresa" />
+                            </div>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-ach mb-0">
+                                <thead>
+                                    <tr>
+                                        <th>Lote</th>
+                                        <th>Empresa / tipo</th>
+                                        <th>Registros</th>
+                                        <th>Fecha y usuario</th>
+                                        <th>Estado</th>
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tbodyBatchesResumen"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ===== AFILIACIONES ===== -->
+                <div id="sec-afiliaciones" class="section-panel">
+                    <div class="page-header">
+                        <div>
+                            <p class="breadcrumb-mini">Inicio / Afiliaciones por lote</p>
+                            <h1 class="page-title">Afiliaciones por lote</h1>
+                            <p class="page-subtitle">Carga, valida y autoriza afiliaciones masivas con trazabilidad.</p>
+                        </div>
+                        <div class="d-flex flex-wrap gap-2">
+                            <button type="button" class="btn-outline-ach" id="btnDescargarPlantilla">
+                                <i class="bi bi-download"></i> Descargar plantilla
+                            </button>
+                            <button type="button" class="btn-primary-ach" id="btnNuevaAfiliacion">
+                                <i class="bi bi-cloud-upload"></i> Nueva afiliación
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="stepper-bar">
+                        <span class="step-pill active" data-step="directory">1. Bandeja de lotes</span>
+                        <i class="bi bi-chevron-right text-muted"></i>
+                        <span class="step-pill" data-step="upload">2. Cargar y validar</span>
+                        <i class="bi bi-chevron-right text-muted"></i>
+                        <span class="step-pill" data-step="preview">3. Vista previa y autorización</span>
+                    </div>
+
+                    <!-- Directory -->
+                    <div id="afi-directory">
+                        <div class="row g-4">
+                            <div class="col-xl-9">
+                                <div class="panel-card p-4">
+                                    <div class="d-flex flex-column flex-md-row justify-content-between gap-3 border-bottom pb-3 mb-3">
+                                        <div>
+                                            <h2 class="panel-title">Bandeja de afiliaciones</h2>
+                                            <p class="panel-desc mb-0">Selecciona uno o varios lotes para ver la vista previa consolidada.</p>
+                                        </div>
+                                        <input type="text" id="filtroLotes" class="form-control form-control-sm" style="max-width:240px;border-color:#d9e1ed" placeholder="Buscar lote, empresa o estado" />
+                                    </div>
+                                    <div class="table-responsive">
+                                        <table class="table table-ach mb-0">
+                                            <thead>
+                                                <tr>
+                                                    <th style="width:48px">Ver</th>
+                                                    <th>Lote</th>
+                                                    <th>Empresa / cuenta</th>
+                                                    <th>Registros</th>
+                                                    <th>Observados</th>
+                                                    <th>Estado</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="tbodyLotes"></tbody>
+                                        </table>
+                                    </div>
+                                    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 border-top pt-3 mt-3">
+                                        <span class="small text-muted" id="lotCounter">0 lote(s) seleccionado(s)</span>
+                                        <button type="button" class="btn-primary-ach" id="btnVistaPrevia" disabled>Ver vista previa</button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-xl-3">
+                                <div class="panel-card overflow-hidden">
+                                    <div class="consulta-header">
+                                        <p class="consulta-label mb-1">Consulta rápida</p>
+                                        <h3 class="h6 fw-bold mb-2">Códigos de documento</h3>
+                                        <p class="small mb-0" style="color:#d7e5ff">Referencia para completar la plantilla.</p>
+                                    </div>
+                                    <div id="listaCodigos"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Upload step -->
+                    <div id="afi-upload" class="d-none">
+                        <div class="panel-card p-4">
+                            <div class="d-flex justify-content-between align-items-start mb-4">
+                                <div>
+                                    <h2 class="panel-title">Cargar afiliación masiva</h2>
+                                    <p class="panel-desc mb-0">El archivo se registra como lote y queda pendiente de validación.</p>
+                                </div>
+                                <button type="button" class="btn btn-sm btn-light" id="btnCerrarUploadAfi"><i class="bi bi-x-lg"></i></button>
+                            </div>
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="form-label fw-semibold">Empresa</label>
+                                    <select class="form-select" id="selectEmpresaAfi">
+                                        <option>Aldeas Infantiles SOS Bolivia</option>
+                                        <option>Administradora de Tarjetas ATC</option>
+                                        <option>Colegio Horizontes - Colhori</option>
+                                        <option>Alianza Cía. de Seguros</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label fw-semibold">Archivo de afiliaciones</label>
+                                    <label class="upload-zone py-3" for="inputAfiFile">
+                                        <i class="bi bi-cloud-upload text-primary fs-4"></i>
+                                        <span id="afiFileName">Seleccionar .xlsx, .csv o .txt</span>
+                                        <input type="file" id="inputAfiFile" accept=".xlsx,.csv,.txt" class="d-none" />
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="mt-3 p-3 rounded" style="background:var(--bg-soft);font-size:0.875rem;color:var(--slate)">
+                                <strong>Validaciones automáticas:</strong> campos obligatorios, códigos de documento, duplicados, cuenta recaudadora y afiliaciones existentes.
+                            </div>
+                            <div class="d-flex justify-content-end gap-2 mt-4">
+                                <button type="button" class="btn btn-link text-muted" id="btnCancelUploadAfi">Cancelar</button>
+                                <button type="button" class="btn-primary-ach" id="btnValidarAfi" disabled>Validar archivo</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Preview step -->
+                    <div id="afi-preview" class="d-none">
+                        <div class="panel-card p-4">
+                            <div class="d-flex flex-column flex-sm-row justify-content-between gap-3 mb-4">
+                                <div>
+                                    <p class="text-primary small fw-semibold text-uppercase mb-1">Vista previa consolidada</p>
+                                    <h2 class="panel-title">Lotes seleccionados para autorización</h2>
+                                    <p class="panel-desc mb-0">Revisa todos los registros antes de confirmar la operación.</p>
+                                </div>
+                                <button type="button" class="btn btn-outline-secondary btn-sm" id="btnVolverBandeja">Volver a bandeja</button>
+                            </div>
+                            <div class="row g-3 mb-4" id="previewResumen"></div>
+                            <div class="table-responsive">
+                                <table class="table table-ach mb-0">
+                                    <thead>
+                                        <tr><th>Lote</th><th>Empresa</th><th>Registros</th><th>Observados</th><th>Estado</th></tr>
+                                    </thead>
+                                    <tbody id="tbodyPreview"></tbody>
+                                </table>
+                            </div>
+                            <div class="mt-4" id="previewAcciones"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ===== CARGAS Y DÉBITOS ===== -->
+                <div id="sec-cargas" class="section-panel">
+                    <div class="page-header">
+                        <div>
+                            <p class="breadcrumb-mini">Inicio / Cargas y débitos</p>
+                            <h1 class="page-title">Cargas y débitos</h1>
+                            <p class="page-subtitle">Administra archivos de afiliación y débitos automáticos.</p>
+                        </div>
+                        <button type="button" class="btn-primary-ach" data-action="upload">
+                            <i class="bi bi-cloud-upload"></i> Nueva carga
+                        </button>
+                    </div>
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-4"><div class="kpi-card"><p class="kpi-label">Registros del día</p><p class="kpi-value">2,230</p></div></div>
+                        <div class="col-md-4"><div class="kpi-card"><p class="kpi-label">Procesados</p><p class="kpi-value">1,804</p></div></div>
+                        <div class="col-md-4"><div class="kpi-card"><p class="kpi-label">Con observaciones</p><p class="kpi-value">32</p></div></div>
+                    </div>
+                    <div class="panel-card">
+                        <div class="p-4 border-bottom d-flex flex-column flex-md-row justify-content-between gap-3">
+                            <div>
+                                <h2 class="panel-title">Últimas cargas</h2>
+                                <p class="panel-desc mb-0">Seguimiento de lotes y estado de procesamiento</p>
+                            </div>
+                            <div class="search-wrap" style="min-width:240px">
+                                <i class="bi bi-search"></i>
+                                <input type="text" class="search-input search-batches" placeholder="Buscar lote o empresa" />
+                            </div>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-ach mb-0">
+                                <thead>
+                                    <tr>
+                                        <th>Lote</th><th>Empresa / tipo</th><th>Registros</th>
+                                        <th>Fecha y usuario</th><th>Estado</th><th></th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tbodyBatchesCargas"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ===== APROBACIONES ===== -->
+                <div id="sec-aprobaciones" class="section-panel">
+                    <div class="page-header">
+                        <div>
+                            <p class="breadcrumb-mini">Inicio / Aprobaciones</p>
+                            <h1 class="page-title">Aprobaciones</h1>
+                            <p class="page-subtitle">Revisa y autoriza las cargas antes de procesarlas.</p>
+                        </div>
+                    </div>
+                    <div class="alert-segregation">
+                        <strong>Segregación de funciones:</strong> el Operador no puede aprobar sus propias cargas.
+                        Perfil actual: <span id="roleLabelAprob">Validador</span>.
+                    </div>
+                    <div id="listaAprobaciones"></div>
+                </div>
+
+                <!-- ===== REPORTES ===== -->
+                <div id="sec-reportes" class="section-panel">
+                    <div class="page-header">
+                        <div>
+                            <p class="breadcrumb-mini">Inicio / Consultas y reportes</p>
+                            <h1 class="page-title">Consultas y reportes</h1>
+                            <p class="page-subtitle">Obtén información operativa para seguimiento y auditoría.</p>
+                        </div>
+                    </div>
+                    <div class="row g-3" id="gridReportes"></div>
+                </div>
+
+                <!-- ===== CONTROL DE ACCESOS ===== -->
+                <div id="sec-accesos" class="section-panel">
+                    <div class="page-header">
+                        <div>
+                            <p class="breadcrumb-mini">Inicio / Control de accesos</p>
+                            <h1 class="page-title">Control de accesos</h1>
+                            <p class="page-subtitle">Prueba perfiles y permisos para cada etapa de la operación.</p>
+                        </div>
+                    </div>
+                    <div class="row g-4">
+                        <div class="col-lg-5">
+                            <div class="panel-card p-4">
+                                <h2 class="panel-title">Cambiar perfil de prueba</h2>
+                                <p class="panel-desc mb-3">El cambio actualiza las acciones disponibles en todo el sistema.</p>
+                                <div id="listaRoles"></div>
+                            </div>
+                        </div>
+                        <div class="col-lg-7">
+                            <div class="panel-card p-4">
+                                <h2 class="panel-title mb-3">Matriz de permisos</h2>
+                                <div class="table-responsive">
+                                    <table class="table table-sm mb-0" id="matrizPermisos"></table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal Nueva carga -->
+    <div id="modalUpload" class="modal-backdrop-ach d-none" role="dialog" aria-modal="true">
+        <div class="modal-card">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <h2 class="h5 fw-bold mb-1">Nueva carga masiva</h2>
+                    <p class="small text-muted mb-0">Valida el archivo antes de enviarlo al flujo de aprobación.</p>
+                </div>
+                <button type="button" class="btn btn-sm btn-light" id="btnCloseUpload"><i class="bi bi-x-lg"></i></button>
+            </div>
+            <div class="mt-4">
+                <label class="form-label fw-semibold">Tipo de operación</label>
+                <select class="form-select mb-3">
+                    <option>Afiliación masiva</option>
+                    <option>Débito automático</option>
+                </select>
+                <label class="form-label fw-semibold">Empresa</label>
+                <select class="form-select mb-3">
+                    <option>Aldeas Infantiles SOS Bolivia</option>
+                    <option>Alianza Cía. de Seguros</option>
+                    <option>Administradora de Tarjetas ATC</option>
+                </select>
+                <label class="upload-zone" for="inputUploadFile">
+                    <i class="bi bi-cloud-upload text-primary fs-3"></i>
+                    <p class="fw-semibold mb-0" id="uploadFileName">Selecciona un archivo</p>
+                    <p class="small text-muted mb-0">Formatos: .xlsx, .csv o .txt</p>
+                    <input type="file" id="inputUploadFile" accept=".xlsx,.csv,.txt" class="d-none" />
+                </label>
+            </div>
+            <div class="d-flex justify-content-end gap-2 mt-4">
+                <button type="button" class="btn btn-link text-muted" id="btnCancelUpload">Cancelar</button>
+                <button type="button" class="btn-primary-ach" id="btnSendUpload">Enviar a validación</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div id="toastAch" class="toast-ach d-none">
+        <i class="bi bi-check-circle-fill text-success"></i>
+        <span id="toastText"></span>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site-ach.js"></script>
+</body>
+</html>
