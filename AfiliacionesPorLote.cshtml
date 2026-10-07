@@ -1,0 +1,272 @@
+@{
+    ViewData["Title"] = "Afiliaciones por lote";
+    Layout = null; // Cambia a tu Layout si tienes uno (ej. "_Layout")
+}
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"]</title>
+
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet" />
+    <!-- Estilos propios -->
+    <link href="~/css/afiliaciones-por-lote.css" rel="stylesheet" />
+</head>
+<body>
+    <div class="app-wrapper d-flex">
+        <!-- ===== SIDEBAR ===== -->
+        <aside class="sidebar d-flex flex-column">
+            <div class="sidebar-header">
+                <button class="btn btn-light btn-sm rounded-pill px-3 fw-semibold text-primary">
+                    Menú principal
+                </button>
+            </div>
+
+            <nav class="sidebar-nav flex-grow-1">
+                <a href="#" class="nav-item">
+                    <i class="bi bi-grid-3x3-gap"></i>
+                    <span>Resumen</span>
+                </a>
+                <a href="#" class="nav-item active">
+                    <i class="bi bi-people"></i>
+                    <span>Afiliaciones</span>
+                </a>
+                <a href="#" class="nav-item">
+                    <i class="bi bi-upload"></i>
+                    <span>Cargas y débitos</span>
+                </a>
+                <a href="#" class="nav-item">
+                    <i class="bi bi-shield-check"></i>
+                    <span>Aprobaciones</span>
+                    <span class="badge bg-primary rounded-pill ms-auto">8</span>
+                </a>
+                <a href="#" class="nav-item">
+                    <i class="bi bi-file-earmark-text"></i>
+                    <span>Consultas y reportes</span>
+                </a>
+
+                <div class="sidebar-section-label">OPERACIÓN</div>
+
+                <a href="#" class="nav-item">
+                    <i class="bi bi-key"></i>
+                    <span>Control de accesos</span>
+                </a>
+            </nav>
+
+            <div class="sidebar-footer">
+                <div class="perfil-card">
+                    <small class="text-muted d-block">Perfil actual</small>
+                    <strong>Operador · Operaciones</strong>
+                    <a href="#" class="cambiar-perfil">Cambiar perfil</a>
+                </div>
+            </div>
+        </aside>
+
+        <!-- ===== MAIN CONTENT ===== -->
+        <main class="main-content flex-grow-1">
+            <!-- Breadcrumb -->
+            <nav aria-label="breadcrumb" class="mb-2">
+                <ol class="breadcrumb mb-0">
+                    <li class="breadcrumb-item"><a href="#">Inicio</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Afiliaciones por lote</li>
+                </ol>
+            </nav>
+
+            <!-- Header -->
+            <div class="d-flex flex-wrap align-items-start justify-content-between gap-3 mb-4">
+                <div>
+                    <h1 class="page-title mb-1">Afiliaciones por lote</h1>
+                    <p class="page-subtitle mb-0">Carga, valida y autoriza afiliaciones masivas con trazabilidad.</p>
+                </div>
+                <div class="d-flex flex-wrap gap-2">
+                    <button type="button" class="btn btn-outline-primary btn-action" id="btnDescargarPlantilla">
+                        <i class="bi bi-download"></i> Descargar plantilla
+                    </button>
+                    <button type="button" class="btn btn-primary btn-action" id="btnNuevaAfiliacion">
+                        <i class="bi bi-cloud-upload"></i> Nueva afiliación
+                    </button>
+                </div>
+            </div>
+
+            <!-- Stepper -->
+            <div class="stepper-bar mb-4">
+                <span class="step-item active" data-step="directory">1. Bandeja de lotes</span>
+                <i class="bi bi-chevron-right step-arrow"></i>
+                <span class="step-item" data-step="upload">2. Cargar y validar</span>
+                <i class="bi bi-chevron-right step-arrow"></i>
+                <span class="step-item" data-step="preview">3. Vista previa y autorización</span>
+            </div>
+
+            <!-- ========== STEP: DIRECTORY ========== -->
+            <div id="step-directory" class="step-panel">
+                <div class="row g-4">
+                    <!-- Tabla principal -->
+                    <div class="col-xl-9">
+                        <div class="card panel-card">
+                            <div class="card-body">
+                                <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 border-bottom pb-4 mb-4">
+                                    <div>
+                                        <h2 class="panel-title mb-1">Bandeja de afiliaciones</h2>
+                                        <p class="panel-desc mb-0">Selecciona uno o varios lotes para ver la vista previa consolidada.</p>
+                                    </div>
+                                    <div class="search-box">
+                                        <input type="text" id="filtroLotes" class="form-control form-control-sm" placeholder="Buscar lote, empresa o estado" />
+                                    </div>
+                                </div>
+
+                                <div class="table-responsive">
+                                    <table class="table table-hover align-middle mb-0" id="tablaLotes">
+                                        <thead>
+                                            <tr>
+                                                <th class="th-check">VER</th>
+                                                <th>LOTE</th>
+                                                <th>EMPRESA / CUENTA</th>
+                                                <th>REGISTROS</th>
+                                                <th>OBSERVADOS</th>
+                                                <th>ESTADO</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="tbodyLotes">
+                                            <!-- Se llena por JS -->
+                                        </tbody>
+                                    </table>
+                                </div>
+
+                                <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 border-top pt-3 mt-3">
+                                    <span class="text-muted small" id="contadorSeleccionados">0 lote(s) seleccionado(s)</span>
+                                    <button type="button" class="btn btn-primary" id="btnVistaPrevia" disabled>
+                                        Ver vista previa
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Consulta rápida -->
+                    <div class="col-xl-3">
+                        <div class="card panel-card consulta-rapida sticky-top">
+                            <div class="consulta-header">
+                                <p class="consulta-label mb-1">CONSULTA RÁPIDA</p>
+                                <h3 class="consulta-title mb-2">Códigos de documento</h3>
+                                <p class="consulta-desc mb-0">Referencia para completar la plantilla.</p>
+                            </div>
+                            <div class="consulta-body" id="listaCodigos">
+                                <!-- Se llena por JS -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ========== STEP: UPLOAD ========== -->
+            <div id="step-upload" class="step-panel d-none">
+                <div class="card panel-card">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start mb-4">
+                            <div>
+                                <h2 class="panel-title mb-1">Cargar afiliación masiva</h2>
+                                <p class="panel-desc mb-0">El archivo se registra como lote y queda pendiente de validación.</p>
+                            </div>
+                            <button type="button" class="btn btn-sm btn-light" id="btnCerrarUpload" aria-label="Cerrar">
+                                <i class="bi bi-x-lg"></i>
+                            </button>
+                        </div>
+
+                        <div class="row g-4">
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Empresa</label>
+                                <select class="form-select" id="selectEmpresa">
+                                    <option>Aldeas Infantiles SOS Bolivia</option>
+                                    <option>Administradora de Tarjetas ATC</option>
+                                    <option>Colegio Horizontes - Colhori</option>
+                                    <option>Alianza Cía. de Seguros</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Archivo de afiliaciones</label>
+                                <label class="upload-zone" for="inputArchivo">
+                                    <i class="bi bi-cloud-upload text-primary fs-4"></i>
+                                    <span id="nombreArchivo">Seleccionar .xlsx, .csv o .txt</span>
+                                    <input type="file" id="inputArchivo" accept=".xlsx,.csv,.txt" class="d-none" />
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="alert alert-info-soft mt-4 mb-0">
+                            <strong>Validaciones automáticas:</strong> campos obligatorios, códigos de documento, duplicados, cuenta recaudadora y afiliaciones existentes.
+                        </div>
+
+                        <div class="d-flex justify-content-end gap-2 mt-4">
+                            <button type="button" class="btn btn-link text-muted" id="btnCancelarUpload">Cancelar</button>
+                            <button type="button" class="btn btn-primary" id="btnValidarArchivo" disabled>Validar archivo</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ========== STEP: PREVIEW ========== -->
+            <div id="step-preview" class="step-panel d-none">
+                <div class="card panel-card">
+                    <div class="card-body">
+                        <div class="d-flex flex-column flex-sm-row justify-content-between align-items-start gap-3 mb-4">
+                            <div>
+                                <p class="text-primary small fw-semibold text-uppercase mb-1">Vista previa consolidada</p>
+                                <h2 class="panel-title mb-1">Lotes seleccionados para autorización</h2>
+                                <p class="panel-desc mb-0">Revisa todos los registros antes de confirmar la operación.</p>
+                            </div>
+                            <button type="button" class="btn btn-outline-secondary btn-sm" id="btnVolverBandeja">
+                                Volver a bandeja
+                            </button>
+                        </div>
+
+                        <div class="row g-3 mb-4" id="resumenPreview">
+                            <!-- Se llena por JS -->
+                        </div>
+
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0">
+                                <thead>
+                                    <tr>
+                                        <th>Lote</th>
+                                        <th>Empresa</th>
+                                        <th>Registros</th>
+                                        <th>Observados</th>
+                                        <th>Estado</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tbodyPreview">
+                                    <!-- Se llena por JS -->
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div class="mt-4" id="accionesPreview">
+                            <!-- Botón autorizar o mensaje de permiso -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Toast de notificaciones -->
+    <div class="toast-container position-fixed bottom-0 end-0 p-3">
+        <div id="toastNotificacion" class="toast align-items-center text-bg-dark border-0" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="d-flex">
+                <div class="toast-body" id="toastMensaje"></div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Cerrar"></button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Script propio -->
+    <script src="~/js/afiliaciones-por-lote.js"></script>
+</body>
+</html>
