@@ -1,0 +1,483 @@
+uiero un ejemplo de unscript para programar un job donde se vacíe una tabla en otra tabla
+
+Te mostraré un ejemplo para programar un Job en SQL Server que copie los registros de una tabla a otra y luego vacíe la tabla de origen.
+
+Primero, hay dos formas de hacerlo, dependiendo de lo que necesites:
+
+Copiar y vaciar: guardar los registros en otra tabla y después eliminarlos de la tabla original.
+
+Vaciar y llenar: eliminar los registros de una tabla y cargar los de otra.
+
+Ejemplo 1. Copiar los registros y vaciar la tabla de origen
+
+Supongamos que tienes estas tablas:
+
+MensajesACH: tabla donde se reciben los mensajes.
+
+MensajesACH_Historico: tabla donde guardarás los mensajes procesados.
+
+Script SQL Server
+
+
+BEGIN TRY
+    BEGIN TRANSACTION;
+
+    -- 1. Copiar los registros al histórico
+    INSERT INTO dbo.MensajesACH_Historico
+    (
+        IdMensaje,
+        Mensaje,
+        FechaRecepcion
+    )
+    SELECT
+        IdMensaje,
+        Mensaje,
+        FechaRecepcion
+    FROM dbo.MensajesACH;
+
+    -- 2. Vaciar la tabla de origen
+    DELETE FROM dbo.MensajesACH;
+
+    COMMIT TRANSACTION;
+END TRY
+BEGIN CATCH
+    IF @@TRANCOUNT > 0
+        ROLLBACK TRANSACTION;
+
+    THROW;
+END CATCH;
+
+¿Por qué usamos una transacción?
+
+Si ocurre un error durante la copia o la eliminación, el ROLLBACK revierte ambas operaciones. Así evitas que se eliminen los registros sin haber completado la copia.
+
+Importante: este ejemplo supone que los registros no se están insertando simultáneamente desde otros procesos. En producción, conviene controlar la concurrencia y evitar duplicados en el histórico.
+
+Ejemplo 2. Programar el Job en SQL Server Agent
+
+1. Abrir SQL Server Management Studio (SSMS)
+
+Conéctate a tu servidor y despliega SQL Server Agent → Jobs.
+
+2. Crear un nuevo Job
+
+Haz clic derecho en Jobs → New Job. Asígnale un nombre, por ejemplo Job_Archivar_MensajesACH.
+
+3. Configurar el Step
+
+En Steps → New, selecciona el tipo Transact-SQL script (T-SQL), elige la base de datos y pega el script del ejemplo.
+
+4. Configurar el Schedule
+
+En Schedules → New, define la frecuencia: cada día, cada hora o cada cierto intervalo.
+
+Para darte el script exacto
+
+1. ¿Qué base de datos utilizas?
+
+SQL Server (SQL Server Agent)
+PostgreSQL (pgAgent o cron)
+MySQL (Event Scheduler)
+
+2. ¿Qué debe hacer el Job?
+
+Copiar de una tabla a otra y vaciar la primera.
+Mover registros seleccionados y eliminarlos del origen.
+Vaciar una tabla y llenarla con los registros de otra.
+
+3. ¿Cada cuánto se ejecutará?
+
+Cada 15 minutos
+Cada hora
+Una vez al día
+Solo cuando se ejecute manualmente
+Preparar mi script
+Dame el script completo para programar un Job. Motor de base de datos: SQL Server. Operación: copiar registros a otra tabla y vaciar la primera. Frecuencia: una vez al día. Incluye validaciones, manejo de errores y pasos de configuración.
+
+Vamos a crear un Job diario en SQL Server Agent que archive los registros de una tabla en otra y, únicamente cuando la copia sea correcta, elimine los registros originales.
+
+La solución incluirá validaciones, transacciones, manejo de errores y programación diaria. Usaré nombres de tablas de ejemplo para que puedas adaptarlos a tu sistema.
+
+1. Flujo de ejecución del Job
+
+SQL Server Agent
+
+Se ejecuta una vez al día
+
+Validar las tablas y los permisos
+
+Copiar los registros al histórico
+
+Verificar la cantidad de registros copiados
+
+Eliminar del origen y confirmar la transacción
+
+Si ocurre un error, se revierte la transacción y se registra el fallo en el historial del Job.
+
+2. Script SQL completo
+
+Ejemplo con estas tablas:
+
+Origen: dbo.MensajesACH
+
+Destino: dbo.MensajesACH_Historico
+
+Base de datos: MiBaseDeDatos
+
+Supuesto importante: ambas tablas tienen las columnas IdMensaje, Mensaje y FechaRecepcion. La tabla histórica debe existir previamente y tener tipos de datos compatibles.
+
+
+/*
+    JOB: Job_Archivar_MensajesACH
+    MOTOR: SQL Server
+    FRECUENCIA: Diaria, a las 02:00
+*/
+
+USE MiBaseDeDatos;
+GO
+
+SET NOCOUNT ON;
+SET XACT_ABORT ON;
+
+BEGIN TRY
+    BEGIN TRANSACTION;
+
+    DECLARE @RegistrosOrigen BIGINT;
+    DECLARE @RegistrosCopiados BIGINT;
+    DECLARE @RegistrosEliminados BIGINT;
+
+    -- 1. Validar que existan las tablas
+    IF OBJECT_ID('dbo.MensajesACH', 'U') IS NULL
+        THROW 50001, 'No existe la tabla de origen.', 1;
+
+    IF OBJECT_ID('dbo.MensajesACH_Historico', 'U') IS NULL
+        THROW 50002, 'No existe la tabla historica.', 1;
+
+    -- 2. Bloquear el origen para evitar cambios
+    -- concurrentes durante el proceso
+    SELECT @RegistrosOrigen = COUNT_BIG(*)
+    FROM dbo.MensajesACH WITH (TABLOCKX, HOLDLOCK);
+
+    -- 3. Copiar los registros al historico
+    INSERT INTO dbo.MensajesACH_Historico
+    (
+        IdMensaje,
+        Mensaje,
+        FechaRecepcion
+    )
+    SELECT
+        IdMensaje,
+        Mensaje,
+        FechaRecepcion
+    FROM dbo.MensajesACH;
+
+    SET @RegistrosCopiados = @@ROWCOUNT;
+
+    -- 4. Validar que se copio la cantidad esperada
+    IF @RegistrosCopiados <> @RegistrosOrigen
+        THROW 50003, 'La cantidad de registros copiados no coincide.', 1;
+
+    -- 5. Vaciar el origen
+    DELETE FROM dbo.MensajesACH;
+
+    SET @RegistrosEliminados = @@ROWCOUNT;
+
+    -- 6. Validar la cantidad eliminada
+    IF @RegistrosEliminados <> @RegistrosOrigen
+        THROW 50004, 'La cantidad de registros eliminados no coincide.', 1;
+
+    -- 7. Confirmar que el origen quedo vacio
+    IF EXISTS (SELECT 1 FROM dbo.MensajesACH)
+        THROW 50005, 'La tabla de origen no quedo vacia.', 1;
+
+    -- 8. Confirmar las operaciones
+    COMMIT TRANSACTION;
+
+    PRINT 'Proceso completado correctamente.';
+    PRINT 'Registros archivados: '
+        + CAST(@RegistrosCopiados AS VARCHAR(20));
+    PRINT 'Registros eliminados: '
+        + CAST(@RegistrosEliminados AS VARCHAR(20));
+
+END TRY
+BEGIN CATCH
+
+    IF XACT_STATE() <> 0
+        ROLLBACK TRANSACTION;
+
+    PRINT 'Error al archivar los registros.';
+    PRINT ERROR_MESSAGE();
+
+    THROW;
+
+END CATCH;
+GO
+¿Qué protege este script?
+
+Transacción: si falla la copia o la eliminación, se revierten ambas operaciones.
+
+Validación de tablas: evita ejecutar el proceso si falta alguna tabla.
+
+Bloqueo del origen: evita que otros procesos modifiquen esa tabla mientras se ejecuta la transferencia; también puede bloquear temporalmente a los usuarios que intenten acceder a ella.
+
+Control de cantidades: comprueba que se copió y eliminó la cantidad esperada.
+
+Manejo de errores: THROW permite que SQL Server Agent detecte el fallo y marque el paso como fallido.
+
+El script usa una lista explícita de columnas, en lugar de SELECT *, para que los cambios en la estructura de las tablas no alteren silenciosamente la copia.
+
+3. Crear el procedimiento almacenado
+
+Para que el Job sea más fácil de mantener, te recomiendo guardar la lógica en un procedimiento almacenado. Así podrás probarlo manualmente y el Job solo tendrá que ejecutarlo.
+
+Ejecuta este script en MiBaseDeDatos. Utiliza el bloque anterior como lógica de proceso, dentro del procedimiento:
+
+
+USE MiBaseDeDatos;
+GO
+
+CREATE OR ALTER PROCEDURE dbo.usp_ArchivarMensajesACH
+AS
+BEGIN
+    SET NOCOUNT ON;
+    SET XACT_ABORT ON;
+
+    DECLARE @RegistrosOrigen BIGINT;
+    DECLARE @RegistrosCopiados BIGINT;
+    DECLARE @RegistrosEliminados BIGINT;
+
+    BEGIN TRY
+        BEGIN TRANSACTION;
+
+        IF OBJECT_ID('dbo.MensajesACH', 'U') IS NULL
+            THROW 50001, 'No existe la tabla de origen.', 1;
+
+        IF OBJECT_ID('dbo.MensajesACH_Historico', 'U') IS NULL
+            THROW 50002, 'No existe la tabla historica.', 1;
+
+        SELECT @RegistrosOrigen = COUNT_BIG(*)
+        FROM dbo.MensajesACH WITH (TABLOCKX, HOLDLOCK);
+
+        INSERT INTO dbo.MensajesACH_Historico
+            (IdMensaje, Mensaje, FechaRecepcion)
+        SELECT IdMensaje, Mensaje, FechaRecepcion
+        FROM dbo.MensajesACH;
+
+        SET @RegistrosCopiados = @@ROWCOUNT;
+
+        IF @RegistrosCopiados <> @RegistrosOrigen
+            THROW 50003, 'Cantidad copiada incorrecta.', 1;
+
+        DELETE FROM dbo.MensajesACH;
+
+        SET @RegistrosEliminados = @@ROWCOUNT;
+
+        IF @RegistrosEliminados <> @RegistrosOrigen
+            THROW 50004, 'Cantidad eliminada incorrecta.', 1;
+
+        IF EXISTS (SELECT 1 FROM dbo.MensajesACH)
+            THROW 50005, 'El origen no quedo vacio.', 1;
+
+        COMMIT TRANSACTION;
+
+        PRINT 'Archivado completado.';
+        PRINT 'Copiados: '
+            + CAST(@RegistrosCopiados AS VARCHAR(20));
+        PRINT 'Eliminados: '
+            + CAST(@RegistrosEliminados AS VARCHAR(20));
+    END TRY
+    BEGIN CATCH
+        IF XACT_STATE() <> 0
+            ROLLBACK TRANSACTION;
+
+        THROW;
+    END CATCH;
+END;
+GO
+4. Crear el Job automáticamente mediante T-SQL
+
+Este script crea el Job, configura su paso y lo programa para ejecutarse todos los días a las 02:00 a. m., según la hora del servidor SQL Server.
+
+Ejecuta este bloque después de crear el procedimiento almacenado:
+
+
+USE msdb;
+GO
+
+DECLARE @JobId UNIQUEIDENTIFIER;
+DECLARE @ScheduleId INT;
+DECLARE @FechaInicio INT;
+
+SET @FechaInicio =
+    CONVERT(INT, CONVERT(CHAR(8), GETDATE(), 112));
+
+-- Crear el Job
+EXEC dbo.sp_add_job
+    @job_name = N'Job_Archivar_MensajesACH',
+    @enabled = 1,
+    @description =
+        N'Archiva los mensajes ACH y vacia la tabla de origen.',
+    @start_step_id = 1,
+    @job_id = @JobId OUTPUT;
+
+-- Crear el paso de ejecucion
+EXEC dbo.sp_add_jobstep
+    @job_id = @JobId,
+    @step_id = 1,
+    @step_name = N'Archivar mensajes ACH',
+    @subsystem = N'TSQL',
+    @database_name = N'MiBaseDeDatos',
+    @command = N'EXEC dbo.usp_ArchivarMensajesACH;',
+    @retry_attempts = 2,
+    @retry_interval = 5,
+    @on_success_action = 1,
+    @on_fail_action = 2;
+
+-- Crear la programacion diaria
+EXEC dbo.sp_add_schedule
+    @schedule_name = N'Schedule_ArchivarACH_Diario',
+    @enabled = 1,
+    @freq_type = 4,
+    @freq_interval = 1,
+    @freq_subday_type = 1,
+    @active_start_date = @FechaInicio,
+    @active_start_time = 020000,
+    @schedule_id = @ScheduleId OUTPUT;
+
+-- Asociar la programacion al Job
+EXEC dbo.sp_attach_schedule
+    @job_id = @JobId,
+    @schedule_id = @ScheduleId;
+
+-- Asociar el Job al servidor local
+EXEC dbo.sp_add_jobserver
+    @job_id = @JobId;
+
+PRINT 'Job creado y programado correctamente.';
+GO
+
+Significado de la configuración:
+
+Parámetro
+
+	
+
+Significado
+
+
+
+
+@freq_type = 4
+
+	
+
+Frecuencia diaria
+
+
+
+
+@freq_interval = 1
+
+	
+
+Cada día
+
+
+
+
+@active_start_time = 020000
+
+	
+
+A las 02:00:00
+
+
+
+
+@retry_attempts = 2
+
+	
+
+Dos reintentos si falla el paso
+
+
+
+
+@retry_interval = 5
+
+	
+
+Espera de 5 minutos entre reintentos
+
+
+
+
+@on_fail_action = 2
+
+	
+
+Marca el Job como fallido
+
+Ejecuta el script de creación una sola vez. Si lo vuelves a ejecutar, el Job o la programación podrían existir ya y generar un error por duplicidad.
+
+5. Probar el procedimiento antes de activar el Job
+
+Primero verifica cuántos registros hay en ambas tablas:
+
+SELECT COUNT(*) AS TotalOrigen
+FROM dbo.MensajesACH;
+
+SELECT COUNT(*) AS TotalHistorico
+FROM dbo.MensajesACH_Historico;
+
+Ejecuta el procedimiento manualmente en un entorno de pruebas:
+
+USE MiBaseDeDatos;
+GO
+
+EXEC dbo.usp_ArchivarMensajesACH;
+GO
+
+Después comprueba los resultados:
+
+SELECT COUNT(*) AS TotalOrigen
+FROM dbo.MensajesACH;
+
+SELECT COUNT(*) AS TotalHistorico
+FROM dbo.MensajesACH_Historico;
+
+Si la tabla de origen tenía 100 registros, el procedimiento debe copiar esos 100 al histórico y dejar el origen vacío. El total del histórico aumentará en 100, suponiendo que no existían esos registros previamente y que no hay otros procesos modificando las tablas.
+
+6. Verificar la ejecución del Job
+
+En SQL Server Management Studio:
+
+Despliega SQL Server Agent → Jobs.
+
+Busca Job_Archivar_MensajesACH.
+
+Haz clic derecho y selecciona Start Job at Step… para probarlo manualmente.
+
+Después, selecciona View History para revisar el resultado y los posibles errores.
+
+También puedes consultar el historial con SQL:
+
+USE msdb;
+GO
+
+EXEC dbo.sp_help_jobhistory
+    @job_name = N'Job_Archivar_MensajesACH';
+GO
+7. Consideraciones importantes para producción
+
+La tabla histórica debe tener una estructura compatible con la tabla de origen.
+
+Si IdMensaje es una clave primaria y ya existe en el histórico, la inserción puede fallar. En ese caso, la transacción se revierte; debes definir cómo tratar los duplicados.
+
+El bloqueo exclusivo puede afectar temporalmente a otros procesos que utilizan la tabla de origen.
+
+Configura el propietario del Job y los permisos de ejecución con una cuenta de servicio adecuada.
+
+Verifica que SQL Server Agent esté disponible y en ejecución; SQL Server Express no incluye SQL Server Agent.
+
+Mi recomendación: antes de utilizarlo con mensajes ACH reales, confirma que la tabla histórica no tenga restricciones incompatibles y que el archivado no interfiera con la recepción de mensajes. Si la tabla recibe mensajes continuamente, es más seguro trasladar únicamente los registros elegibles para archivo, en lugar de vaciar indiscriminadamente toda la tabla.
