@@ -1,0 +1,71 @@
+<mxfile host="app.diagrams.net">
+  <diagram id="ach-debito-azure" name="Flujo ACH Ordenes de Debito">
+    <mxGraphModel dx="1000" dy="600" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1100" pageHeight="500" math="0" shadow="0">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+
+        <mxCell id="title" value="4.1 ÓRDENES DE DÉBITO – CONSULTA A APIs DE DOMICILIACIÓN Y CREDICARGO" style="text;html=1;align=left;verticalAlign=middle;fontStyle=1;fontSize=13;fontFamily=Arial;" vertex="1" parent="1">
+          <mxGeometry x="40" y="10" width="800" height="30" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="bcp" value="" style="rounded=0;whiteSpace=wrap;html=1;dashed=1;strokeColor=#9933CC;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="180" y="50" width="780" height="360" as="geometry"/>
+        </mxCell>
+        <mxCell id="vnet" value="BCP" style="aspect=fixed;html=1;points=[];align=center;image;fontSize=12;fontFamily=Arial;image=img/lib/azure2/networking/Virtual_Networks.svg;" vertex="1" parent="1">
+          <mxGeometry x="900" y="58" width="40" height="24" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="user" value="Operador ACH" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;fontFamily=Arial;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="50" y="170" width="40" height="80" as="geometry"/>
+        </mxCell>
+        <mxCell id="arrow1" value="" style="shape=flexArrow;endArrow=classic;html=1;fillColor=#FFFFFF;strokeColor=#000000;width=14;endSize=6;" edge="1" parent="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="105" y="210" as="sourcePoint"/>
+            <mxPoint x="235" y="210" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+
+        <mxCell id="web" value="Web BO ACH&lt;br&gt;Órdenes de Débito&lt;br&gt;(ASP.NET en IIS)" style="aspect=fixed;html=1;points=[];align=center;image;fontSize=12;fontFamily=Arial;image=data:image/svg+xml,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2NCIgaGVpZ2h0PSI2NCIgdmlld0JveD0iMCAwIDY0IDY0Ij4KPHJlY3QgeD0iMiIgeT0iMTAiIHdpZHRoPSI2MCIgaGVpZ2h0PSI0NCIgcng9IjMiIGZpbGw9IiMwRjZDQkQiLz4KPHJlY3QgeD0iMiIgeT0iMTAiIHdpZHRoPSI2MCIgaGVpZ2h0PSI5IiByeD0iMyIgZmlsbD0iIzBCNUNBMCIvPgo8Y2lyY2xlIGN4PSI4IiBjeT0iMTQuNSIgcj0iMS44IiBmaWxsPSIjZmZmIi8+PGNpcmNsZSBjeD0iMTQiIGN5PSIxNC41IiByPSIxLjgiIGZpbGw9IiNmZmYiLz48Y2lyY2xlIGN4PSIyMCIgY3k9IjE0LjUiIHI9IjEuOCIgZmlsbD0iI2ZmZiIvPgo8cmVjdCB4PSI2IiB5PSIyMyIgd2lkdGg9IjUyIiBoZWlnaHQ9IjI3IiByeD0iMS41IiBmaWxsPSIjMkY5MUUwIi8+CjxwYXRoIGQ9Ik0yNCAyOSBMMTcgMzYuNSBMMjQgNDQiIGZpbGw9Im5vbmUiIHN0cm9rZT0iI2ZmZiIgc3Ryb2tlLXdpZHRoPSIzIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiLz4KPHBhdGggZD0iTTQwIDI5IEw0NyAzNi41IEw0MCA0NCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjZmZmIiBzdHJva2Utd2lkdGg9IjMiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIvPgo8cGF0aCBkPSJNMzUgMjcgTDI5IDQ2IiBmaWxsPSJub25lIiBzdHJva2U9IiNmZmYiIHN0cm9rZS13aWR0aD0iMyIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+Cjwvc3ZnPg==;verticalLabelPosition=bottom;verticalAlign=top;" vertex="1" parent="1">
+          <mxGeometry x="250" y="180" width="64" height="64" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="apiDom" value="API Domiciliación&lt;br&gt;(autenticación de usuario)" style="aspect=fixed;html=1;points=[];align=center;image;fontSize=12;fontFamily=Arial;image=img/lib/azure2/app_services/App_Services.svg;verticalLabelPosition=bottom;verticalAlign=top;" vertex="1" parent="1">
+          <mxGeometry x="560" y="90" width="64" height="64" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="apiCred" value="API Credicargo" style="aspect=fixed;html=1;points=[];align=center;image;fontSize=12;fontFamily=Arial;image=img/lib/azure2/app_services/App_Services.svg;verticalLabelPosition=bottom;verticalAlign=top;" vertex="1" parent="1">
+          <mxGeometry x="560" y="270" width="64" height="64" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="db" value="BD Credicargo&lt;br&gt;(modificada)" style="aspect=fixed;html=1;points=[];align=center;image;fontSize=12;fontFamily=Arial;image=img/lib/azure2/databases/SQL_Database.svg;verticalLabelPosition=bottom;verticalAlign=top;" vertex="1" parent="1">
+          <mxGeometry x="820" y="270" width="52" height="64" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="tagWeb" value="ACTUALIZADO" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E36C09;strokeColor=none;fontColor=#FFFFFF;fontSize=9;fontStyle=1;fontFamily=Arial;" vertex="1" parent="1">
+          <mxGeometry x="242" y="152" width="80" height="18" as="geometry"/>
+        </mxCell>
+        <mxCell id="tagApi" value="ACTUALIZADO" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E36C09;strokeColor=none;fontColor=#FFFFFF;fontSize=9;fontStyle=1;fontFamily=Arial;" vertex="1" parent="1">
+          <mxGeometry x="552" y="242" width="80" height="18" as="geometry"/>
+        </mxCell>
+        <mxCell id="tagDb" value="ACTUALIZADO" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E36C09;strokeColor=none;fontColor=#FFFFFF;fontSize=9;fontStyle=1;fontFamily=Arial;" vertex="1" parent="1">
+          <mxGeometry x="806" y="242" width="80" height="18" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="e1" value="Valida usuario" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeWidth=2;fontFamily=Arial;fontSize=11;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="web" target="apiDom">
+          <mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="450" y="212"/><mxPoint x="450" y="122"/></Array></mxGeometry>
+        </mxCell>
+        <mxCell id="e2" value="Consulta / registra órdenes" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;strokeWidth=2;fontFamily=Arial;fontSize=11;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="web" target="apiCred">
+          <mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="450" y="212"/><mxPoint x="450" y="302"/></Array></mxGeometry>
+        </mxCell>
+        <mxCell id="e3" value="Lee / graba" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=1;startArrow=block;startFill=1;strokeWidth=2;fontFamily=Arial;fontSize=11;" edge="1" parent="1" source="apiCred" target="db">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="legend" value="Leyenda: etiqueta naranja = componente actualizado en este requerimiento" style="text;html=1;align=left;verticalAlign=middle;fontSize=10;fontFamily=Arial;fontColor=#666666;" vertex="1" parent="1">
+          <mxGeometry x="180" y="420" width="500" height="20" as="geometry"/>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
